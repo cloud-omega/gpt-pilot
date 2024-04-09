@@ -44,4 +44,4 @@ jobs:
         run: docker compose down --remove-orphans -v
         
       - name: Run Docker Compose Up
-        run: docker compose up -d --wait  && echo "Text: ${{ github.event.inputs.appdescription }}"
+        run: docker compose up -d --wait  && echo ${{ github.event.inputs.appdescription }}
