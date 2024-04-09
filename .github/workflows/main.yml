@@ -1,0 +1,47 @@
+name: Docker Compose Up for Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      appdescription:
+        description: 'APP long description'     
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Run job'  
+
+jobs:
+  run:
+    runs-on: self-hosted
+    env:
+      TZ: ${{ env.TZ }}
+      SITE_PATH: ${{ github.event.repository.name }}
+      DOMAIN_NAME: ${{ secrets.GR_URL }}
+      NEO4J_DATA: ${{ env.GENAI_VOL_NEO4JDATA }}
+      VOL_EMB: ${{ env.GENAI_VOL_EMB }}
+      NEO4J_USERNAME: ${{ secrets.GENAI_NEO4J_USERNAME }}
+      NEO4J_PASSWORD: ${{ secrets.GENAI_NEO4J_PASSWORD }}
+      LLM: ${{ secrets.GENAI_OLLAMA }}
+      EMBEDDING_MODEL: "ollama"
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
+      LANGCHAIN_TRACING_V2: true
+      LANGCHAIN_PROJECT: ${{ secrets.LANGCHAIN_PROJECT }}
+      LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+    steps:
+      - uses: actions/checkout@v3
+
+      #- n  ame: Login to Docker Hub (optional)
+      #  run: |
+      #    echo "$DOCKER_HUB_USERNAME:$DOCKER_HUB_PASSWORD" | docker login --username --password-stdin
+
+      - name: Update Docker Compose
+        if: always()
+        run: docker compose build && docker compose pull
+
+      - name: Stop Docker Compose
+        if: always()
+        run: docker compose down --remove-orphans -v
+        
+      - name: Run Docker Compose Up
+        run: docker compose up -d --wait
